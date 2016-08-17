@@ -16,7 +16,11 @@ Task 01: NginX and SSL Configurations:
 Task 02: Docker
   
   1) Download dockerfile
+  
   2) Do a docker build "sudo docker build -t dockerfile ."
+  
   3) Run the docker container
+  
      sudo docker run -d -p 5000:8080 -P dockerfile ./rzp-interview
+  
   4) Install mysql and make sure "razorpay" database is created and DB is listening on all interfaces and accesible remotely.
