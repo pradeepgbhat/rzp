@@ -1,0 +1,25 @@
+---
+- hosts: webservers 
+  remote_user: pradeep
+  tasks:
+  - name: ensure nginx is at the latest version
+    apt:  name=nginx state=present
+    sudo: yes
+ 
+  - name: create a empty config file
+    file: path=/etc/nginx/conf.d/proxy.conf state=touch mode="u=rw,g=r,o=r"
+    sudo: yes
+
+  - name: copy nginx config file to the conf.d on the server
+    template: src=./proxy.conf dest=/etc/nginx/conf.d/proxy.conf
+    sudo: yes
+
+  - name: Ensure nginx is started
+    service: name=nginx state=restarted
+    sudo: yes
+
+  - name: Check if nginx is running after restart
+    service: name=nginx state=running
+    sudo: yes
+
+
