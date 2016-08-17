@@ -1,11 +1,11 @@
 ---
-- hosts: webservers
+- hosts: webservers 
   remote_user: pradeep
   tasks:
   - name: ensure nginx is at the latest version
     apt:  name=nginx state=present
     sudo: yes
-
+ 
   - name: create or touch to ensure a proxy config file with relevant permissions
     file: path=/etc/nginx/conf.d/proxy.conf state=touch mode="u=rw,g=r,o=r"
     sudo: yes
@@ -25,7 +25,7 @@
   - name: Download Certbot-Auto to /etc/certbot-auto
     get_url: url=https://dl.eff.org/certbot-auto dest=/etc/certbot-auto mode="u=rwx,g=rw,o=r"
     sudo: yes
-
+  
   - name: install certbot-auto dependencies
     apt: name={{ item }} state=present
     sudo: yes
@@ -40,11 +40,11 @@
             - dialog
             - libaugeas0
             - ca-certificates
-
+  
   - name: Generate cert using certbot
-    command: /etc/certbot-auto certonly --email pradeep.g.bhat@gmail.com --domain pradeep.razorpay.in --webroot --webroot-path /usr/share/nginx/html/
+    command: /etc/certbot-auto certonly --email pradeep.g.bhat@gmail.com --domain pradeep.razorpay.in --webroot --webroot-path /usr/share/nginx/html/ --fullchain-path /etc/letsencrypt/live/pradeep.razorpay.in/fullchain.pem --key-path /etc/letsencrypt/live/pradeep.razorpay.in/privkey.pem 
     sudo: yes
-
+  
   - name: Check for ssl cert file
     stat: path=/etc/letsencrypt/live/pradeep.razorpay.in/fullchain.pem
     sudo: yes
@@ -62,7 +62,7 @@
 
   - name: replace/create nginx ssl config file to the conf.d on the server
     template: src=./ssl.conf dest=/etc/nginx/conf.d/ssl.conf
-    sudo: yes
+    sudo: yes 
 
   - name: Ensure nginx is restarted
     service: name=nginx state=restarted
