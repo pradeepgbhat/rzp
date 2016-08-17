@@ -1,16 +1,16 @@
 ---
-- hosts: webservers 
+- hosts: webservers
   remote_user: pradeep
   tasks:
   - name: ensure nginx is at the latest version
     apt:  name=nginx state=present
     sudo: yes
- 
-  - name: create a empty config file
+
+  - name: create or touch to ensure a proxy config file with relevant permissions
     file: path=/etc/nginx/conf.d/proxy.conf state=touch mode="u=rw,g=r,o=r"
     sudo: yes
 
-  - name: copy nginx config file to the conf.d on the server
+  - name: replace/create nginx config file to the conf.d on the server
     template: src=./proxy.conf dest=/etc/nginx/conf.d/proxy.conf
     sudo: yes
 
@@ -22,4 +22,52 @@
     service: name=nginx state=running
     sudo: yes
 
+  - name: Download Certbot-Auto to /etc/certbot-auto
+    get_url: url=https://dl.eff.org/certbot-auto dest=/etc/certbot-auto mode="u=rwx,g=rw,o=r"
+    sudo: yes
 
+  - name: install certbot-auto dependencies
+    apt: name={{ item }} state=present
+    sudo: yes
+    with_items:
+            - build-essential
+            - libssl-dev
+            - libffi-dev
+            - python-dev
+            - git
+            - python-pip
+            - python-virtualenv
+            - dialog
+            - libaugeas0
+            - ca-certificates
+
+  - name: Generate cert using certbot
+    command: /etc/certbot-auto certonly --email pradeep.g.bhat@gmail.com --domain pradeep.razorpay.in --webroot --webroot-path /usr/share/nginx/html/
+    sudo: yes
+
+  - name: Check for ssl cert file
+    stat: path=/etc/letsencrypt/live/pradeep.razorpay.in/fullchain.pem
+    sudo: yes
+    register: ssl_cert
+
+  - name: Check for ssl key file
+    stat: path=/etc/letsencrypt/live/pradeep.razorpay.in/privkey.pem
+    sudo: yes
+    register: ssl_key
+
+  - name: create or touch to ensure a ssl config file with relevant permissions
+    file: path=/etc/nginx/conf.d/ssl.conf state=touch mode="u=rw,g=r,o=r"
+    sudo: yes
+    when: (ssl_cert.stat.exists == True) and (ssl_key.stat.exists == True)
+
+  - name: replace/create nginx ssl config file to the conf.d on the server
+    template: src=./ssl.conf dest=/etc/nginx/conf.d/ssl.conf
+    sudo: yes
+
+  - name: Ensure nginx is restarted
+    service: name=nginx state=restarted
+    sudo: yes
+
+  - name: Check if nginx is running after restart
+    service: name=nginx state=running
+    sudo: yes
